@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="light.png" alt="Document MCP Server" width="100%" />
+</p>
+
 # Document MCP Server
 
 A lightweight [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server written in Python. It exposes tools allowing LLM-powered clients (such as Claude Desktop, Cursor, or AI coding assistants) to discover and read documents from an in-memory document store.
@@ -19,6 +23,7 @@ A lightweight [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 .
 ├── mcp_server.py   # Main MCP server implementation and tools
 ├── app.py          # Application entry / scratchpad
+├── light.png       # Header banner image
 ├── .gitignore      # Git ignore rules for virtual environments and caches
 └── README.md       # Project documentation
 ```
