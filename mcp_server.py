@@ -1,3 +1,4 @@
+from pydantic import Field
 from mcp.server.mcpserver import MCPServer
 
 mcp = MCPServer("DocumentMCP")
@@ -16,14 +17,48 @@ def list_documents() -> str:
     """Lists all the documents available in the system."""
     return ", ".join(docs.keys())
 
-@mcp.tool()
-def read_document(filename: str) -> str:
-    """Reads the content of a document.
+#The decorator specifies the tool name and description, while the function parameters define the required arguments.
+#The Field class from Pydantic provides argument descriptions that help Claude understand what each parameter expects
+@mcp.tool(
+    name="read_doc_contents",
+    description="Read the contents of a document and return it as a string."
+)
+def read_document(doc_id: str = Field(description="Id of the document to read")):
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    
+    return docs[doc_id]
 
-    Args:
-        filename: The name of the document to read.
-    """
-    return docs.get(filename, "Document not found.")
+@mcp.tool(
+    name = "edit_document",
+    description = "Edit a document by replacing a string in the documents content with a new string."
+)
+def edit_document(
+    doc_id: str = Field(description="Id of the document that will be edited"),
+    old_str: str = Field(description="The text to replace. Must match exactly, including whitespace."),
+    new_str: str = Field(description="The new text to insert in place of the old text.")
+):
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
 
+    docs[doc_id] = docs[doc_id].replace(old_str, new_str)
+    return f"Successfully updated {doc_id}"
+
+@mcp.resource(
+    "docs://documents",
+    mime_type="application/json"
+)
+def list_docs() -> list[str]:
+    return list(docs.keys())
+
+@mcp.resource(
+    "docs://documents/{doc_id}",
+    mime_type="text/plain"
+)
+def fetch_doc(doc_id: str) -> str:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    return docs[doc_id]
+    
 if __name__ == "__main__":
     mcp.run()
