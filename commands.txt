@@ -1,0 +1,13 @@
+How to run the project in CLI - 
+python mcp_client.py mcp_server.py
+
+
+How to run the project in MCP Inspector - 
+uv run mcp dev mcp_server.py
+
+
+How to run the project in Claude Desktop - 
+Open claude desktop and go to tools, 
+click on +Add Tools, 
+in Custom HTTP server enter the path to the mcp_server.py file
+

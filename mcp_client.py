@@ -4,7 +4,9 @@ import shutil
 import sys
 from contextlib import AsyncExitStack
 from pathlib import Path
-
+import json
+from typing import Any
+from pydantic import AnyUrl
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -16,7 +18,6 @@ load_dotenv()  # load environment variables from .env
 # Gemini model constant
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip().strip('"').strip("'")
 MAX_TOOL_TURNS = 10
-
 
 def clean_schema(schema: dict | None) -> dict:
     """Ensure JSON schema from MCP is clean and compatible with Gemini function declarations."""
@@ -185,6 +186,16 @@ class MCPClient:
     async def cleanup(self):
         """Clean up resources"""
         await self.exit_stack.aclose()
+
+    async def read_resource(self, uri: str) -> Any:
+        result = await self.client().read_resource(AnyUrl(uri))
+        resource = result.contents[0]
+
+        if isinstance(resource, types.TextResourceContents):
+            if resource.mimeType == "application/json":
+                return json.loads(resource.text)
+
+        return resource.text    
 
 
 async def main():

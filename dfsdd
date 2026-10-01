@@ -1,0 +1,11 @@
+[33mcommit d20bffb76c40ae2028338fce65cf5d213ec8c964[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdev[m[33m, [m[1;31morigin/dev[m[33m)[m
+Author: Dhananjay Kumar <dhananjaykumar137c@gmail.com>
+Date:   Sat Sep 26 22:41:36 2026 +0530
+
+    MCP Client with Gemini model api integration
+
+ .gitignore    |   3 [32m+[m[31m-[m
+ app.py        |   3 [31m-[m
+ mcp_client.py | 212 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ mcp_server.py |  51 [32m+++++++++++[m[31m---[m
+ 4 files changed, 257 insertions(+), 12 deletions(-)
