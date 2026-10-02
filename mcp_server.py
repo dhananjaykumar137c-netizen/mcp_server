@@ -1,4 +1,6 @@
+from pydantic import Field
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.prompts import base
 
 mcp = MCPServer("DocumentMCP")
 
@@ -11,19 +13,79 @@ docs = {
     "spec.txt": "These specifications define the technical requirements for the equipment",
 }
 
+# MCP TOOLS
+#The decorator specifies the tool name and description, while the function parameters define the required arguments.
+#The Field class from Pydantic provides argument descriptions that help Claude understand what each parameter expects
 @mcp.tool()
 def list_documents() -> str:
     """Lists all the documents available in the system."""
     return ", ".join(docs.keys())
 
-@mcp.tool()
-def read_document(filename: str) -> str:
-    """Reads the content of a document.
+@mcp.tool(
+    name="read_doc_contents",
+    description="Read the contents of a document and return it as a string."
+)
+def read_document(doc_id: str = Field(description="Id of the document to read")):
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    
+    return docs[doc_id]
 
-    Args:
-        filename: The name of the document to read.
-    """
-    return docs.get(filename, "Document not found.")
+@mcp.tool(
+    name = "edit_document",
+    description = "Edit a document by replacing a string in the documents content with a new string."
+)
+def edit_document(
+    doc_id: str = Field(description="Id of the document that will be edited"),
+    old_str: str = Field(description="The text to replace. Must match exactly, including whitespace."),
+    new_str: str = Field(description="The new text to insert in place of the old text.")
+):
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+
+    docs[doc_id] = docs[doc_id].replace(old_str, new_str)
+    return f"Successfully updated {doc_id}"
+
+# MCP RESOURCES
+@mcp.resource(
+    "docs://documents",
+    mime_type="application/json"
+)
+def list_docs() -> list[str]:
+    return list(docs.keys())
+
+@mcp.resource(
+    "docs://documents/{doc_id}",
+    mime_type="text/plain"
+)
+def fetch_doc(doc_id: str) -> str:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    return docs[doc_id]
+    
+# MCP PROMPTS
+@mcp.prompt(
+    name="format",
+    description="Rewrites the contents of the document in Markdown format."
+)
+def format_document(
+    doc_id: str = Field(description="Id of the document to format")
+) -> list[base.Message]:
+    prompt = f"""
+Your goal is to reformat a document to be written with markdown syntax.
+
+The id of the document you need to reformat is:
+<document_id>
+{doc_id}
+</document_id>
+
+Add in headers, bullet points, tables, etc as necessary. Feel free to add in structure.
+Use the 'edit_document' tool to edit the document. After the document has been reformatted...
+"""
+
+    return [
+        base.UserMessage(prompt)
+    ]
 
 if __name__ == "__main__":
     mcp.run()
